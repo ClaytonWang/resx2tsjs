@@ -6,22 +6,24 @@ var mkpath = require('mkpath');
 var search = require('recursive-search');
 var xml2js = require('xml2js');
 var virtualProjectRoot = '\\..\\..\\..\\';
-function executeResxToTs(typeScriptResourcesNamespace, virtualResxFolder, virtualTypeScriptFolder) {
+function executeResxToTs(typeScriptResourcesNamespace, virtualResxFolder, virtualTypeScriptFolder, isAsslowNest) {
+    if (isAsslowNest === void 0) { isAsslowNest = false; }
     var files = getFilesFromFolder(virtualResxFolder);
     if (files !== undefined && files !== null) {
         for (var i = 0, length_1 = files.length; i < length_1; i++) {
             var resxFilename = files[i];
-            convertResxToTypeScriptModel(resxFilename, typeScriptResourcesNamespace, virtualTypeScriptFolder);
+            convertResxToTypeScriptModel(resxFilename, typeScriptResourcesNamespace, virtualTypeScriptFolder, isAsslowNest);
         }
     }
 }
 exports.executeResxToTs = executeResxToTs;
-function executeResxToJson(virtualResxFolder, virtualJsonFolder, fileNameLanguage) {
+function executeResxToJson(virtualResxFolder, virtualJsonFolder, isAsslowNest, fileNameLanguage) {
+    if (isAsslowNest === void 0) { isAsslowNest = false; }
     var files = getFilesFromFolder(virtualResxFolder);
     if (files !== undefined && files !== null) {
         for (var i = 0, length_2 = files.length; i < length_2; i++) {
             var resxFilename = files[i];
-            convertResxToJson(resxFilename, virtualJsonFolder, fileNameLanguage);
+            convertResxToJson(resxFilename, virtualJsonFolder, isAsslowNest, fileNameLanguage);
         }
     }
 }
@@ -49,56 +51,65 @@ function getFilesFromFolder(virtualResxFolder) {
         return cleanedFiles;
     }
 }
-function convertResxToTypeScriptModel(resxFilename, typeScriptResourcesNamespace, virtualTypeScriptFolder) {
+function convertResxToTypeScriptModel(resxFilename, typeScriptResourcesNamespace, virtualTypeScriptFolder, isAsslowNest) {
+    if (isAsslowNest === void 0) { isAsslowNest = false; }
     fs.readFile(resxFilename, function (err, data) {
         var parser = new xml2js.Parser();
         parser.parseString(data, function (err, result) {
             if (result !== undefined) {
-                convertXmlToTypeScriptModelFile(result, resxFilename, typeScriptResourcesNamespace, virtualTypeScriptFolder);
+                convertXmlToTypeScriptModelFile(result, resxFilename, typeScriptResourcesNamespace, virtualTypeScriptFolder, isAsslowNest);
             }
         });
     });
 }
-function convertResxToJson(resxFilename, virtualJsonFolder, fileNameLanguage) {
+function convertResxToJson(resxFilename, virtualJsonFolder, isAsslowNest, fileNameLanguage) {
+    if (isAsslowNest === void 0) { isAsslowNest = false; }
     fs.readFile(resxFilename, function (err, data) {
         var parser = new xml2js.Parser();
         parser.parseString(data, function (err, result) {
             if (result !== undefined) {
-                convertXmlToJsonFile(result, resxFilename, virtualJsonFolder, fileNameLanguage);
+                convertXmlToJsonFile(result, resxFilename, virtualJsonFolder, isAsslowNest, fileNameLanguage);
             }
         });
     });
 }
-function convertXmlToDictionary(xmlObject) {
+function convertXmlToDictionary(xmlObject, isAsslowNest) {
+    if (isAsslowNest === void 0) { isAsslowNest = false; }
     var dictionary = {};
     if (xmlObject.root.data !== undefined) {
         for (var i = 0, nrOfResourcesInFile = xmlObject.root.data.length; i < nrOfResourcesInFile; i++) {
             var key = xmlObject.root.data[i].$.name; // 
             var value = xmlObject.root.data[i].value.toString();
-            parseToDictionaryItem(key, value, dictionary);
+            parseToDictionaryItem(key, value, dictionary, isAsslowNest);
         }
     }
     return dictionary;
 }
-function parseToDictionaryItem(key, value, dictionary) {
+function parseToDictionaryItem(key, value, dictionary, isAsslowNest) {
+    if (isAsslowNest === void 0) { isAsslowNest = false; }
     if (!dictionary) {
         dictionary = {};
     }
     if (!key.length) {
         return;
     }
-    // let nestedKeyIndex = key.indexOf("_");
-    // if (nestedKeyIndex >= 0) {
-    //     let firstKey = key.substring(0, nestedKeyIndex);
-    //     let restKey = key.substring(nestedKeyIndex + 1);
-    //     if (!dictionary.hasOwnProperty(firstKey)) {
-    //         dictionary[firstKey] = <Dictionary>{};
-    //     }
-    //     parseToDictionaryItem(restKey, value, <Dictionary>dictionary[firstKey])
-    // } else {
-    //     dictionary[key] = value;
-    // }
-    dictionary[key] = value;
+    if (isAsslowNest) {
+        var nestedKeyIndex = key.indexOf("_");
+        if (nestedKeyIndex >= 0) {
+            var firstKey = key.substring(0, nestedKeyIndex);
+            var restKey = key.substring(nestedKeyIndex + 1);
+            if (!dictionary.hasOwnProperty(firstKey)) {
+                dictionary[firstKey] = {};
+            }
+            parseToDictionaryItem(restKey, value, dictionary[firstKey]);
+        }
+        else {
+            dictionary[key] = value;
+        }
+    }
+    else {
+        dictionary[key] = value;
+    }
 }
 function convertDictionaryToTsMapping(dictionary, nest) {
     var nestedTabs = "";
@@ -122,7 +133,8 @@ function convertDictionaryToTsMapping(dictionary, nest) {
     result += nestedTabs + "}";
     return result;
 }
-function convertXmlToTypeScriptModelFile(xmlObject, resxFilename, typeScriptResourcesNamespace, virtualTypeScriptFolder) {
+function convertXmlToTypeScriptModelFile(xmlObject, resxFilename, typeScriptResourcesNamespace, virtualTypeScriptFolder, isAsslowNest) {
+    if (isAsslowNest === void 0) { isAsslowNest = false; }
     var projectRoot = getProjectRoot();
     var relativeResxFilename = resxFilename.replace(projectRoot, "").replace(/\\/g, "/");
     var className = resxFilename.substr(resxFilename.lastIndexOf("\\") + 1).replace('.resx', '').replace(".", "_");
@@ -130,7 +142,7 @@ function convertXmlToTypeScriptModelFile(xmlObject, resxFilename, typeScriptReso
         '// Auto generated by resx-to-ts-json (npm package)' + '\n' + '\n';
     content = content + 'declare module ' + typeScriptResourcesNamespace + ' {\n';
     content = content + '\texport class ' + className + ' ';
-    var dictionary = convertXmlToDictionary(xmlObject);
+    var dictionary = convertXmlToDictionary(xmlObject, isAsslowNest);
     content = content + convertDictionaryToTsMapping(dictionary, 1);
     content = content + '\n}\n';
     // Write model if resources found
@@ -153,10 +165,11 @@ function convertXmlToTypeScriptModelFile(xmlObject, resxFilename, typeScriptReso
         }
     }
 }
-function convertXmlToJsonFile(xmlObject, resxFilename, virtualJsonFolder, fileNameLanguage) {
+function convertXmlToJsonFile(xmlObject, resxFilename, virtualJsonFolder, isAsslowNest, fileNameLanguage) {
+    if (isAsslowNest === void 0) { isAsslowNest = false; }
     var projectRoot = getProjectRoot();
     var relativeResxFilename = resxFilename.replace(projectRoot, "").replace(/\\/g, "/");
-    var dictionary = convertXmlToDictionary(xmlObject);
+    var dictionary = convertXmlToDictionary(xmlObject, isAsslowNest);
     var content = JSON.stringify(dictionary);
     // Write model if resources found
     if (Object.keys(dictionary).length > 0) {

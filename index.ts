@@ -13,24 +13,24 @@ interface Dictionary {
     [key: string]: string | Dictionary;
 }
 
-export function executeResxToTs(typeScriptResourcesNamespace: string, virtualResxFolder: string, virtualTypeScriptFolder: string): void {
+export function executeResxToTs(typeScriptResourcesNamespace: string, virtualResxFolder: string, virtualTypeScriptFolder: string, isAsslowNest: boolean = false): void {
     let files = getFilesFromFolder(virtualResxFolder);
 
     if (files !== undefined && files !== null) {
         for (let i = 0, length = files.length; i < length; i++) {
             const resxFilename = files[i];
-            convertResxToTypeScriptModel(resxFilename, typeScriptResourcesNamespace, virtualTypeScriptFolder);
+            convertResxToTypeScriptModel(resxFilename, typeScriptResourcesNamespace, virtualTypeScriptFolder, isAsslowNest);
         }
     }
 }
 
-export function executeResxToJson(virtualResxFolder: string, virtualJsonFolder: string, fileNameLanguage?: string): void {
+export function executeResxToJson(virtualResxFolder: string, virtualJsonFolder: string, isAsslowNest: boolean = false, fileNameLanguage?: string): void {
     let files = getFilesFromFolder(virtualResxFolder);
 
     if (files !== undefined && files !== null) {
         for (let i = 0, length = files.length; i < length; i++) {
             const resxFilename = files[i];
-            convertResxToJson(resxFilename, virtualJsonFolder, fileNameLanguage);
+            convertResxToJson(resxFilename, virtualJsonFolder,isAsslowNest, fileNameLanguage);
         }
     }
 }
@@ -65,31 +65,31 @@ function getFilesFromFolder(virtualResxFolder: string): any {
     }
 }
 
-function convertResxToTypeScriptModel(resxFilename: string, typeScriptResourcesNamespace: string, virtualTypeScriptFolder: string): void {
+function convertResxToTypeScriptModel(resxFilename: string, typeScriptResourcesNamespace: string, virtualTypeScriptFolder: string, isAsslowNest: boolean = false): void {
     fs.readFile(resxFilename, function (err: any, data: any) {
         const parser = new xml2js.Parser();
 
         parser.parseString(data, function (err: any, result: any) {
             if (result !== undefined) {
-                convertXmlToTypeScriptModelFile(result, resxFilename, typeScriptResourcesNamespace, virtualTypeScriptFolder);
+                convertXmlToTypeScriptModelFile(result, resxFilename, typeScriptResourcesNamespace, virtualTypeScriptFolder, isAsslowNest);
             }
         });
     });
 }
 
-function convertResxToJson(resxFilename: string, virtualJsonFolder: string, fileNameLanguage?: string): void {
+function convertResxToJson(resxFilename: string, virtualJsonFolder: string, isAsslowNest: boolean = false, fileNameLanguage?: string): void {
     fs.readFile(resxFilename, function (err: any, data: any) {
         const parser = new xml2js.Parser();
 
         parser.parseString(data, function (err: any, result: any) {
             if (result !== undefined) {
-                convertXmlToJsonFile(result, resxFilename, virtualJsonFolder, fileNameLanguage);
+                convertXmlToJsonFile(result, resxFilename, virtualJsonFolder, isAsslowNest, fileNameLanguage);
             }
         });
     });
 }
 
-function convertXmlToDictionary(xmlObject: any) {
+function convertXmlToDictionary(xmlObject: any, isAsslowNest: boolean = false) {
     let dictionary: Dictionary = {};
 
     if (xmlObject.root.data !== undefined) {
@@ -97,14 +97,14 @@ function convertXmlToDictionary(xmlObject: any) {
             const key = xmlObject.root.data[i].$.name; // 
             const value = xmlObject.root.data[i].value.toString();
 
-            parseToDictionaryItem(key, value, dictionary);
+            parseToDictionaryItem(key, value, dictionary, isAsslowNest);
         }
     }
 
     return dictionary;
 }
 
-function parseToDictionaryItem(key: string, value: string, dictionary: Dictionary) {
+function parseToDictionaryItem(key: string, value: string, dictionary: Dictionary, isAsslowNest: boolean = false) {
     if (!dictionary) {
         dictionary = {};
     }
@@ -113,21 +113,24 @@ function parseToDictionaryItem(key: string, value: string, dictionary: Dictionar
         return;
     }
 
-    // let nestedKeyIndex = key.indexOf("_");
+    if (isAsslowNest) {
+        let nestedKeyIndex = key.indexOf("_");
 
-    // if (nestedKeyIndex >= 0) {
-    //     let firstKey = key.substring(0, nestedKeyIndex);
-    //     let restKey = key.substring(nestedKeyIndex + 1);
+        if (nestedKeyIndex >= 0) {
+            let firstKey = key.substring(0, nestedKeyIndex);
+            let restKey = key.substring(nestedKeyIndex + 1);
 
-    //     if (!dictionary.hasOwnProperty(firstKey)) {
-    //         dictionary[firstKey] = <Dictionary>{};
-    //     }
+            if (!dictionary.hasOwnProperty(firstKey)) {
+                dictionary[firstKey] = <Dictionary>{};
+            }
 
-    //     parseToDictionaryItem(restKey, value, <Dictionary>dictionary[firstKey])
-    // } else {
-    //     dictionary[key] = value;
-    // }
-     dictionary[key] = value;
+            parseToDictionaryItem(restKey, value, <Dictionary>dictionary[firstKey])
+        } else {
+            dictionary[key] = value;
+        }
+    } else {
+        dictionary[key] = value;
+    }
 }
 
 function convertDictionaryToTsMapping(dictionary: Dictionary, nest: number) {
@@ -157,7 +160,7 @@ function convertDictionaryToTsMapping(dictionary: Dictionary, nest: number) {
     return result;
 }
 
-function convertXmlToTypeScriptModelFile(xmlObject: any, resxFilename: string, typeScriptResourcesNamespace: string, virtualTypeScriptFolder: string): void {
+function convertXmlToTypeScriptModelFile(xmlObject: any, resxFilename: string, typeScriptResourcesNamespace: string, virtualTypeScriptFolder: string, isAsslowNest: boolean = false): void {
     const projectRoot = getProjectRoot();
     const relativeResxFilename = resxFilename.replace(projectRoot, "").replace(/\\/g, "/");
     const className = resxFilename.substr(resxFilename.lastIndexOf("\\") + 1).replace('.resx', '').replace(".", "_");
@@ -168,7 +171,7 @@ function convertXmlToTypeScriptModelFile(xmlObject: any, resxFilename: string, t
     content = content + 'declare module ' + typeScriptResourcesNamespace + ' {\n';
     content = content + '\texport class ' + className + ' ';
 
-    let dictionary = convertXmlToDictionary(xmlObject);
+    let dictionary = convertXmlToDictionary(xmlObject, isAsslowNest);
     content = content + convertDictionaryToTsMapping(dictionary, 1);
     content = content + '\n}\n';
 
@@ -198,11 +201,11 @@ function convertXmlToTypeScriptModelFile(xmlObject: any, resxFilename: string, t
     }
 }
 
-function convertXmlToJsonFile(xmlObject: any, resxFilename: string, virtualJsonFolder: string, fileNameLanguage?: string): void {
+function convertXmlToJsonFile(xmlObject: any, resxFilename: string, virtualJsonFolder: string, isAsslowNest: boolean = false, fileNameLanguage?: string): void {
     const projectRoot = getProjectRoot();
     const relativeResxFilename = resxFilename.replace(projectRoot, "").replace(/\\/g, "/");
 
-    let dictionary = convertXmlToDictionary(xmlObject);
+    let dictionary = convertXmlToDictionary(xmlObject, isAsslowNest);
     let content = JSON.stringify(dictionary);
 
     // Write model if resources found
