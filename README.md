@@ -1,6 +1,6 @@
-﻿# resx-to-ts-json
+﻿# resx2tsjs
 
-Source code for the resx-to-ts-json node module, originally forked from resx-to-typescript
+Source code for the resx2tsjs node module, originally forked from resx-to-ts-json
 
 This node module converts resx files to TypeScript definition files and JSON files. 
 
@@ -19,12 +19,12 @@ Home: {
     button: "Button text"
 }
 ```
-
+Also you can disable nested resources by pass paramater `isAllowNest` to `true`,default is `false`.
 The script has two exported functions:
 
 ```
-function executeResxToTs(typeScriptResourcesNamespace: string, virtualResxFolder: string, virtualTypeScriptFolder: string): void;
-function executeResxToJson(virtualResxFolder: string, virtualJsonFolder: string, fileNameLanguage?: string): void;
+function executeResxToTs(typeScriptResourcesNamespace: string, virtualResxFolder: string, virtualTypeScriptFolder: string, isAllowNest:boolean = false): void;
+function executeResxToJson(virtualResxFolder: string, virtualJsonFolder: string, isAllowNest:boolean = false,fileNameLanguage?: string): void;
 ```
 
 `executeResxToTs` converts all resx files in the `virtualResxFolder` to TypeScript definition files (.d.ts) with the namespace defined as `typeScriptResourcesNamespace` and outputs these files to `virtualTypeScriptFolder`  
@@ -45,8 +45,8 @@ To use the module in for instance a gulp task:
 
 ```
 var resxConverter = require('resx-to-ts-json');
-resxConverter.executeResxToTs('exampleApp.resources', '/Resources', '/App/Resources');
-resxConverter.executeResxToJson('/Resources', '/App/Resources/Json');
+resxConverter.executeResxToTs('exampleApp.resources', '/Resources', '/App/Resources', true);
+resxConverter.executeResxToJson('/Resources', '/App/Resources/Json', true);
 ```
 
 where the parameters stand for:
@@ -59,11 +59,5 @@ where the parameters stand for:
 
 UPDATES:
 
-2017-02-13 Remove unnecessary escaping of single quotes in string values. (v 1.0.14)
+2017-07-14 add paramater for disable nested resoures.(v 1.0.0)
 
-2016-09-20 Switched to creating a typescript definition file (.d.ts), json file (.json), and added support for
-                nested resources using '_' between key names. (v 1.0.13)
-                
-2016-08-19 Refactored code and added support for multi line resources. (v 1.0.12)
-
-Voilá, the TypeScript models for your resx files are added to your project and ready to use in typescript development/mvc bundling.
