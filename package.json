@@ -1,0 +1,37 @@
+{
+  "name": "resx2tsjs",
+  "version": "1.4.0",
+  "description": "Converts resx files to TypeScript definitions and json files",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "node dist/test.js",
+    "build": "tsc -p ./ --outDir dist"
+  },
+  "keywords": [
+    "resx2tsjs",
+    "typescript",
+    "resx",
+    "json",
+    "transform",
+    "build",
+    "model",
+    "vs2015"
+  ],
+  "author": {
+    "name":"clayton wang",
+    "originalAuthor": "Martijn van der Corput"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "add-typescript-file-to-project": "^1.0.1",
+    "mkpath": "^1.0.0",
+    "recursive-search": "^1.0.1",
+    "typescript": "^2.4.1",
+    "xml2js": "^0.4.17"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ClaytonWang/resx2tsjs.git"
+  },
+  "homepage": "https://github.com/ClaytonWang/resx2tsjs/blob/master/README.md"
+}
