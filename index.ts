@@ -15,7 +15,7 @@ interface Dictionary {
 
 export function executeResxToTs(typeScriptResourcesNamespace: string, virtualResxFolder: string, virtualTypeScriptFolder: string, isAsslowNest: boolean = false): void {
     let files = getFilesFromFolder(virtualResxFolder);
-    console.log(files);
+	
     if (files !== undefined && files !== null) {
       files = removeDuplicatedFiles(files);
         for (let i = 0, length = files.length; i < length; i++) {

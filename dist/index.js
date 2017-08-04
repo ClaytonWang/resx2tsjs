@@ -9,7 +9,6 @@ var virtualProjectRoot = '\\..\\..\\..\\';
 function executeResxToTs(typeScriptResourcesNamespace, virtualResxFolder, virtualTypeScriptFolder, isAsslowNest) {
     if (isAsslowNest === void 0) { isAsslowNest = false; }
     var files = getFilesFromFolder(virtualResxFolder);
-    console.log(files);
     if (files !== undefined && files !== null) {
         files = removeDuplicatedFiles(files);
         for (var i = 0, length_1 = files.length; i < length_1; i++) {

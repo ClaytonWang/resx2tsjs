@@ -1,6 +1,6 @@
 {
   "name": "resx2tsjs",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Converts resx files to TypeScript definitions and json files",
   "main": "dist/index.js",
   "scripts": {
