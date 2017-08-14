@@ -8,8 +8,7 @@ var xml2js = require('xml2js');
 var virtualProjectRoot = '\\..\\..\\..\\';
 function executeResxToTs(typeScriptResourcesNamespace, virtualResxFolder, virtualTypeScriptFolder, isAsslowNest) {
     if (isAsslowNest === void 0) { isAsslowNest = false; }
-    var files = getFilesFromFolder(virtualResxFolder);
-    console.log(files);
+    var files = getFilesFromFolder(virtualResxFolder, true);
     if (files !== undefined && files !== null) {
         files = removeDuplicatedFiles(files);
         for (var i = 0, length_1 = files.length; i < length_1; i++) {
@@ -40,7 +39,8 @@ function removeDuplicatedFiles(files) {
     }
     return ret;
 }
-function getFilesFromFolder(virtualResxFolder) {
+function getFilesFromFolder(virtualResxFolder, uniquFile) {
+    if (uniquFile === void 0) { uniquFile = false; }
     var files = null;
     if (virtualResxFolder === undefined || virtualResxFolder === '') {
         files = search.recursiveSearchSync(/.resx$/, __dirname + virtualProjectRoot);
@@ -60,7 +60,12 @@ function getFilesFromFolder(virtualResxFolder) {
         var filesAsString = JSON.stringify(files).replace('[', "").replace(']', "");
         var splittedFiles = filesAsString.split(',');
         var cleanedFiles = splittedFiles.map(function (fileName) {
-            return fileName.trim().replace(/"/g, "").replace(/\\\\/g, "\\").replace('.en-AU.', '.').replace('.de.', '.');
+            if (uniquFile) {
+                return fileName.trim().replace(/"/g, "").replace(/\\\\/g, "\\").replace('.en-AU.', '.').replace('.de.', '.');
+            }
+            else {
+                return fileName.trim().replace(/"/g, "").replace(/\\\\/g, "\\");
+            }
         });
         return cleanedFiles;
     }

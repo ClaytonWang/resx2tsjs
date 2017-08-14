@@ -14,8 +14,8 @@ interface Dictionary {
 }
 
 export function executeResxToTs(typeScriptResourcesNamespace: string, virtualResxFolder: string, virtualTypeScriptFolder: string, isAsslowNest: boolean = false): void {
-    let files = getFilesFromFolder(virtualResxFolder);
-	
+    let files = getFilesFromFolder(virtualResxFolder,true);
+
     if (files !== undefined && files !== null) {
       files = removeDuplicatedFiles(files);
         for (let i = 0, length = files.length; i < length; i++) {
@@ -48,7 +48,7 @@ function removeDuplicatedFiles(files){
     return ret;
 }
 
-function getFilesFromFolder(virtualResxFolder: string): any {
+function getFilesFromFolder(virtualResxFolder: string,uniquFile:boolean = false): any {
     let files: any = null;
 
     if (virtualResxFolder === undefined || virtualResxFolder === '') {
@@ -73,9 +73,12 @@ function getFilesFromFolder(virtualResxFolder: string): any {
         const filesAsString = JSON.stringify(files).replace('[', "").replace(']', "");
         const splittedFiles = filesAsString.split(',');
         let cleanedFiles = splittedFiles.map((fileName) => {
-          return fileName.trim().replace(/"/g, "").replace(/\\\\/g, "\\").replace('.en-AU.','.').replace('.de.','.');
+          if(uniquFile){
+            return fileName.trim().replace(/"/g, "").replace(/\\\\/g, "\\").replace('.en-AU.','.').replace('.de.','.');
+          }else{
+            return fileName.trim().replace(/"/g, "").replace(/\\\\/g, "\\");
+          }
         });
-
         return cleanedFiles;
     }
 }
