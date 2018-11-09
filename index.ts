@@ -14,10 +14,10 @@ interface Dictionary {
 }
 
 export function executeResxToTs(typeScriptResourcesNamespace: string, virtualResxFolder: string, virtualTypeScriptFolder: string, isAsslowNest: boolean = false): void {
-    let files = getFilesFromFolder(virtualResxFolder,true);
+    let files = getFilesFromFolder(virtualResxFolder, true);
 
     if (files !== undefined && files !== null) {
-      files = removeDuplicatedFiles(files);
+        files = removeDuplicatedFiles(files);
         for (let i = 0, length = files.length; i < length; i++) {
             const resxFilename = files[i];
             convertResxToTypeScriptModel(resxFilename, typeScriptResourcesNamespace, virtualTypeScriptFolder, isAsslowNest);
@@ -36,19 +36,19 @@ export function executeResxToJson(virtualResxFolder: string, virtualJsonFolder: 
     }
 }
 
-function removeDuplicatedFiles(files){
-  var tmp = {},
-      ret = [];
+function removeDuplicatedFiles(files) {
+    var tmp = {},
+        ret = [];
     for (var i = 0, j = files.length; i < j; i++) {
-          if (!tmp[files[i]]) {
-              tmp[files[i]] = 1;
-              ret.push(files[i]);
-          }
-      }
+        if (!tmp[files[i]]) {
+            tmp[files[i]] = 1;
+            ret.push(files[i]);
+        }
+    }
     return ret;
 }
 
-function getFilesFromFolder(virtualResxFolder: string,uniquFile:boolean = false): any {
+function getFilesFromFolder(virtualResxFolder: string, uniquFile: boolean = false): any {
     let files: any = null;
 
     if (virtualResxFolder === undefined || virtualResxFolder === '') {
@@ -73,11 +73,11 @@ function getFilesFromFolder(virtualResxFolder: string,uniquFile:boolean = false)
         const filesAsString = JSON.stringify(files).replace('[', "").replace(']', "");
         const splittedFiles = filesAsString.split(',');
         let cleanedFiles = splittedFiles.map((fileName) => {
-          if(uniquFile){
-            return fileName.trim().replace(/"/g, "").replace(/\\\\/g, "\\").replace('.en-AU.','.').replace('.de.','.');
-          }else{
-            return fileName.trim().replace(/"/g, "").replace(/\\\\/g, "\\");
-          }
+            if (uniquFile) {
+                return fileName.trim().replace(/"/g, "").replace(/\\\\/g, "\\").replace('.en-AU.', '.').replace('.de.', '.');
+            } else {
+                return fileName.trim().replace(/"/g, "").replace(/\\\\/g, "\\");
+            }
         });
         return cleanedFiles;
     }
@@ -202,7 +202,7 @@ function convertXmlToTypeScriptModelFile(xmlObject: any, resxFilename: string, t
 
         if (virtualTypeScriptFolder === undefined || virtualTypeScriptFolder === '') {
             // Write the file aside of the the resx file.
-            fs.writeFile(tsFileName, content, null);
+            fs.writeFileSync(tsFileName, content);
 
             addTypeScriptFile.execute(tsFileName);
         }
@@ -214,7 +214,7 @@ function convertXmlToTypeScriptModelFile(xmlObject: any, resxFilename: string, t
 
             mkpath.sync(projectRoot + virtualTypeScriptFolder, '0700');
 
-            fs.writeFile(outputFileName, content, null);
+            fs.writeFileSync(outputFileName, content);
 
             addTypeScriptFile.execute(relativeOutputFileName);
         }
@@ -236,7 +236,7 @@ function convertXmlToJsonFile(xmlObject: any, resxFilename: string, virtualJsonF
 
         if (virtualJsonFolder === undefined || virtualJsonFolder === '') {
             // Write the file aside of the the resx file.
-            fs.writeFile(jsonFileName, content, null);
+            fs.writeFileSync(jsonFileName, content);
         }
         else {
             // Write the file to the given output folder.
@@ -251,7 +251,7 @@ function convertXmlToJsonFile(xmlObject: any, resxFilename: string, virtualJsonF
 
             mkpath.sync(projectRoot + virtualJsonFolder, '0700');
 
-            fs.writeFile(outputFileName, content, null);
+            fs.writeFileSync(outputFileName, content);
         }
     }
 }

@@ -1,6 +1,6 @@
 {
   "name": "resx2tsjs",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Converts resx files to TypeScript definitions and json files",
   "main": "dist/index.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "vs2015"
   ],
   "author": {
-    "name":"clayton wang",
+    "name": "clayton wang",
     "originalAuthor": "Martijn van der Corput"
   },
   "license": "ISC",
